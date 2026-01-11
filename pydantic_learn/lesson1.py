@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, UTC
-from typing import Literal
+from typing import Literal, Annotated
 from functools import partial # allow us to pass arguments to default_factory functions
 from pydantic import BaseModel, Field, EmailStr, HttpUrl, ValidationError
 
@@ -41,8 +41,8 @@ except ValidationError as e:
 # Example with Field
 
 class BlogPost(BaseModel):
-    id:int
-    title:str = Field(min_length=5, max_length=100)
+    id:Annotated[int, Field(gt=0)] # of adding validation and metadata
+    title: Annotated[str, Field(min_length=5, max_length=100)]
     content:str
     published_at:datetime = Field(default_factory= lambda : datetime.now(tz=UTC))
     created_at:datetime = Field(default_factory= partial(datetime.now, tz=UTC))
@@ -50,6 +50,7 @@ class BlogPost(BaseModel):
     tags:list[str] = Field(default_factory=list)
     website:HttpUrl | None = None 
     status :Literal["draft", "published", "archived"] = "draft"
+    age:Annotated[int, Field(gt=13, lt=100)] | None = None
 
 
 
