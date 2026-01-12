@@ -19,18 +19,19 @@ class User(BaseModel):
     def validator(cls , v:str) -> str:
         if not v.replace("_","").isalnum():
             raise ValueError("username must be alphanumeric with underscores allowed")
-        return v
+        return v.lower()
 
 
 user = User(
     uid=1,
-    username="dhaanush_VIVEK_99",
+    username="dhaanush_VI£EK_99",
     Email ="dhaanush@gmail.com",)
 
 
 # example to see the output of the class model
 
 print(user.uid)
+print(user.username)
 user.bio = "data scientist"
 
 print(user.model_dump_json(indent=2))
