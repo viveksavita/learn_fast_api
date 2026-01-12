@@ -2,7 +2,7 @@ from datetime import datetime, timezone, UTC
 from uuid import UUID, uuid4
 from typing import Literal, Annotated
 from functools import partial # allow us to pass arguments to default_factory functions
-from pydantic import BaseModel, Field, EmailStr, HttpUrl, ValidationError, SecretStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, HttpUrl, ValidationError, SecretStr, field_validator, model_validator
 
 
 class User(BaseModel):
@@ -24,7 +24,7 @@ class User(BaseModel):
 
 user = User(
     uid=1,
-    username="dhaanush_VI£EK_99",
+    username="dhaanush_VIEK_99",
     Email ="dhaanush@gmail.com",)
 
 
@@ -79,3 +79,28 @@ except ValidationError as e:
     
 print(post1.model_dump_json(indent=2))
 print( post1.password.get_secret_value() )  # Accessing the secret value
+
+
+
+#Example of model validator
+
+class UserRegistration(BaseModel):
+    username:EmailStr
+    password:str
+    confirm_password:str
+
+    @model_validator(mode="after")
+    def passwords_match(self):
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match")
+        return self
+    
+
+try:
+    user_reg = UserRegistration(
+        username="dhaanush@gmail.com",
+        password="supersecret",
+        confirm_password="supers1ecret"
+    )
+except ValidationError as e:
+    print(e.json())
