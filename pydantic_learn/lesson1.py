@@ -38,7 +38,7 @@ except ValidationError as e:
     print(e.json())
 
 
-# Example with Field
+# Example with Field/annotation
 
 class BlogPost(BaseModel):
     id:Annotated[int, Field(gt=0)] # of adding validation and metadata
@@ -51,10 +51,17 @@ class BlogPost(BaseModel):
     website:HttpUrl | None = None 
     status :Literal["draft", "published", "archived"] = "draft"
     age:Annotated[int, Field(gt=13, lt=100)] | None = None
+    slug: Annotated[str, Field(pattern=r"^[a-z0-9-]+$")]
 
 
+try:
+    post1 = BlogPost(id=1,title=1,
+                        content="This is the content of my first post.", 
+                        author_email="dhaanush@gmail.com"
+                        ,slug="my-first-post"
+                        )
+except ValidationError as e:
+    print(e.json())
 
-post1 = BlogPost(id=1,title="My First Post",
-                     content="This is the content of my first post.", author_email="dhaanush@gmail.com")
     
 print(post1.model_dump_json(indent=2))
