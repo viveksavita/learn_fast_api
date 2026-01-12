@@ -1,7 +1,8 @@
 from datetime import datetime, timezone, UTC
+from uuid import UUID, uuid4
 from typing import Literal, Annotated
 from functools import partial # allow us to pass arguments to default_factory functions
-from pydantic import BaseModel, Field, EmailStr, HttpUrl, ValidationError
+from pydantic import BaseModel, Field, EmailStr, HttpUrl, ValidationError, SecretStr, field_validator
 
 
 class User(BaseModel):
@@ -13,9 +14,17 @@ class User(BaseModel):
     is_active:bool = True
     full_name:str | None = None
 
+    @field_validator('username')
+    @classmethod
+    def validator(cls , v:str) -> str:
+        if not v.replace("_","").isalnum():
+            raise ValueError("username must be alphanumeric with underscores allowed")
+        return v
+
+
 user = User(
     uid=1,
-    username="dhaanush",
+    username="dhaanush_VIVEK_99",
     Email ="dhaanush@gmail.com",)
 
 
@@ -42,6 +51,7 @@ except ValidationError as e:
 
 class BlogPost(BaseModel):
     id:Annotated[int, Field(gt=0)] # of adding validation and metadata
+    uid: UUID = Field(default_factory=uuid4)
     title: Annotated[str, Field(min_length=5, max_length=100)]
     content:str
     published_at:datetime = Field(default_factory= lambda : datetime.now(tz=UTC))
@@ -52,16 +62,19 @@ class BlogPost(BaseModel):
     status :Literal["draft", "published", "archived"] = "draft"
     age:Annotated[int, Field(gt=13, lt=100)] | None = None
     slug: Annotated[str, Field(pattern=r"^[a-z0-9-]+$")]
+    password:SecretStr
 
 
 try:
-    post1 = BlogPost(id=1,title=1,
+    post1 = BlogPost(id=1,title="test_title",
                         content="This is the content of my first post.", 
                         author_email="dhaanush@gmail.com"
                         ,slug="my-first-post"
+                        , password="supersecret"
                         )
 except ValidationError as e:
     print(e.json())
 
     
 print(post1.model_dump_json(indent=2))
+print( post1.password.get_secret_value() )  # Accessing the secret value
