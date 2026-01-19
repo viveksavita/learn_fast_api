@@ -6,15 +6,16 @@ from pydantic import BaseModel, Field, EmailStr, HttpUrl, ValidationError, Secre
 
 
 class User(BaseModel):
-    uid: int
+    uid: UUID = Field(default_factory=uuid4)
     username:str
     verified_at:datetime | None = None
-    Email:str
+    email:EmailStr
     bio:str = ""
     is_active:bool = True
     first_name:str | None = None
     last_name:str | None = None
     followers_count:int = 0
+    password:SecretStr | None = None
 
     @field_validator('username')
     @classmethod
@@ -37,20 +38,9 @@ class User(BaseModel):
     def is_influencer(self) -> bool:
         return (self.followers_count or 0) > 1000
 
-user = User(
-    uid=1,
-    username="dhaanush_VIEK_99",
-    Email ="dhaanush@gmail.com",
-    followers_count=10000000)
 
 
-# example to see the output of the class model
 
-print(user.uid)
-print(user.username)
-user.bio = "data scientist"
-
-print(user.model_dump_json(indent=2))
 
 
 # Example with error
@@ -75,35 +65,19 @@ class Comment(BaseModel):
 # Example with Field/annotation
 
 class BlogPost(BaseModel):
-    id:Annotated[int, Field(gt=0)] # of adding validation and metadata
     uid: UUID = Field(default_factory=uuid4)
     title: Annotated[str, Field(min_length=5, max_length=100)]
     content:str
     published_at:datetime = Field(default_factory= lambda : datetime.now(tz=UTC))
     created_at:datetime = Field(default_factory= partial(datetime.now, tz=UTC))
-    author_email:EmailStr
+    author: User
     tags:list[str] = Field(default_factory=list)
     website:HttpUrl | None = None 
     status :Literal["draft", "published", "archived"] = "draft"
     age:Annotated[int, Field(gt=13, lt=100)] | None = None
     slug: Annotated[str, Field(pattern=r"^[a-z0-9-]+$")]
-    password:SecretStr
     comments:list[Comment] = Field(default_factory=list)
 
-
-try:
-    post1 = BlogPost(id=1,title="test_title",
-                        content="This is the content of my first post.", 
-                        author_email="dhaanush@gmail.com"
-                        ,slug="my-first-post"
-                        , password="supersecret"
-                        )
-except ValidationError as e:
-    print(e.json())
-
-    
-print(post1.model_dump_json(indent=2))
-print( post1.password.get_secret_value() )  # Accessing the secret value
 
 
 
