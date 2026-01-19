@@ -23,6 +23,8 @@ class User(BaseModel):
             raise ValueError("username must be alphanumeric with underscores allowed")
         return v.lower()
     
+    
+   # Example of computed fields
     @computed_field
     @property
     def display_name(self) -> str:
@@ -62,6 +64,14 @@ except ValidationError as e:
     print(e.json())
 
 
+
+# Example of nested models
+
+class Comment(BaseModel):
+    content:str
+    author_email:EmailStr
+    likes:int = 0
+
 # Example with Field/annotation
 
 class BlogPost(BaseModel):
@@ -78,6 +88,7 @@ class BlogPost(BaseModel):
     age:Annotated[int, Field(gt=13, lt=100)] | None = None
     slug: Annotated[str, Field(pattern=r"^[a-z0-9-]+$")]
     password:SecretStr
+    comments:list[Comment] = Field(default_factory=list)
 
 
 try:
@@ -120,6 +131,33 @@ except ValidationError as e:
     print(e.json())
 
 
-# Example of computed fields
+
+# example of blogpost distionary 
+
+post_data = {
+    "title": "Understanding Pydantic Models",
+    "content": "Example of re-occurring calls",
+    "slug": "understanding-pydantic",
+    "author": {
+        "username": "viveksavita",
+        "email": "viveksavita@gmail.com",
+        "age": 39,
+        "password": "secret123",
+    },
+    "comments": [
+        {
+            "content": "Example of json seperated comments",
+            "author_email": "test@example.com",
+            "likes": 100,
+        },
+        {
+            "content": "How to use Pydantic effectively in FastAPI",
+            "author_email": "viveksavita@example.com",
+            "likes": 200,
+        },
+    ],
+}
 
 
+post = BlogPost(**post_data)
+print(post.model_dump_json(indent=2))
